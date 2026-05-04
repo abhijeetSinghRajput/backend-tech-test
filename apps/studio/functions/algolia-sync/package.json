@@ -1,0 +1,9 @@
+{
+  "name": "algolia-sync",
+  "version": "1.0.0",
+  "description": "Syncs Sanity documents with Algolia",
+  "dependencies": {
+    "algoliasearch": "^4.23.3",
+    "sanity-algolia": "^1.1.0"
+  }
+}

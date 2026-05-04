@@ -1,0 +1,22 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@portabletext/block-tools": "^5.1.1",
+    "@sanity/client": "^7.22.0",
+    "@sanity/schema": "^5.23.0",
+    "algoliasearch": "^4.27.0",
+    "dotenv": "^16.4.7",
+    "jsdom": "^29.1.1",
+    "uuid": "^14.0.0"
+  }
+}

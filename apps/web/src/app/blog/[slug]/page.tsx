@@ -56,8 +56,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const { data } = await fetchBlogSlugPageData(slug);
   const slugString = `/blog/${slug}`;
-  const { data } = await fetchBlogSlugPageData(slugString);
 
   let imageUrl: string | undefined;
   if (data?.seoImage) {
@@ -94,8 +94,7 @@ export default async function BlogSlugPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const slugString = `/blog/${slug}`;
-  const { data } = await fetchBlogSlugPageData(slugString);
+  const { data } = await fetchBlogSlugPageData(slug);
   if (!data) {
     return notFound();
   }

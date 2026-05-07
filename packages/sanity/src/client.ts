@@ -20,5 +20,19 @@ const imageBuilder = createImageUrlBuilder({
   dataset: env.NEXT_PUBLIC_SANITY_DATASET,
 });
 
-export const urlFor = (source: SanityImageSource) =>
-  imageBuilder.image(source).auto("format").quality(80).format("webp");
+export const urlFor = (source: any) => {
+  if (source?.id && !source.asset) {
+    return imageBuilder
+      .image({
+        _type: "image",
+        asset: {
+          _ref: source.id,
+          _type: "reference",
+        },
+      })
+      .auto("format")
+      .quality(80)
+      .format("webp");
+  }
+  return imageBuilder.image(source).auto("format").quality(80).format("webp");
+};

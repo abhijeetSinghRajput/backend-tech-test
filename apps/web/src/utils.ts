@@ -3,14 +3,21 @@ import type { PortableTextBlock } from "next-sanity";
 import slugify from "slugify";
 
 export const getBaseUrl = () => {
+  // Client-side: use window.location.origin
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
+  // Server-side/Build-side: prioritize Vercel environment variables
   if (env.NEXT_PUBLIC_VERCEL_ENV === "production") {
     return env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
   }
 
-  if (env.NEXT_PUBLIC_VERCEL_ENV === "preview") {
+  if (env.NEXT_PUBLIC_VERCEL_URL && env.NEXT_PUBLIC_VERCEL_ENV === "preview") {
     return env.NEXT_PUBLIC_VERCEL_URL;
   }
 
+  // Fallback for local development
   return "http://localhost:3000";
 };
 

@@ -126,7 +126,7 @@ export function getSEOMetadata(page: PageSeoData = {}): Metadata {
     creator: siteConfig.title,
     authors: [{ name: siteConfig.title }],
     icons: {
-      icon: `${baseUrl}/favicon.png`,
+      icon: "/icon.png",
     },
     keywords: allKeywords,
     robots: seoNoIndex ? "noindex, nofollow" : "index, follow",

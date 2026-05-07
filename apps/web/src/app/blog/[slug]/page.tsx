@@ -2,6 +2,7 @@ import { Logger } from "@workspace/logger";
 import { client, urlFor } from "@workspace/sanity/client";
 import { sanityFetch } from "@workspace/sanity/live";
 import { queryBlogPaths, queryBlogSlugPageData } from "@workspace/sanity/query";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 
 import { BlogImage } from "@/components/blog-card";
@@ -16,38 +17,55 @@ import { PokemonHero, type Pokemon } from "@/components/elements/pokemon-hero";
 
 const logger = new Logger("BlogSlug");
 
-async function fetchBlogSlugPageData(slug: string) {
-  return await sanityFetch({
-    query: queryBlogSlugPageData,
-    params: { slug },
-  });
-}
+const fetchBlogSlugPageData = cache(async (slug: string) => {
+  const maxRetries = 3;
+  let lastError: any;
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await sanityFetch({
+        query: queryBlogSlugPageData,
+        params: { slug },
+      });
+    } catch (err) {
+      lastError = err;
+      logger.warn(`Retry ${i + 1}/${maxRetries} for slug: ${slug} due to error: ${err instanceof Error ? err.message : String(err)}`);
+      // Wait before retrying (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+    }
+  }
+
+  throw lastError;
+});
 
 async function fetchBlogPaths() {
-  try {
-    const slugs = await client.fetch(queryBlogPaths);
+  const maxRetries = 3;
+  let lastError: any;
 
-    // If no slugs found, return empty array to prevent build errors
-    if (!Array.isArray(slugs) || slugs.length === 0) {
-      return [];
-    }
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const slugs = await client.fetch(queryBlogPaths);
 
-    const paths: { slug: string }[] = [];
-    for (const slug of slugs) {
-      if (!slug) {
-        continue;
+      // If no slugs found, return empty array to prevent build errors
+      if (!Array.isArray(slugs) || slugs.length === 0) {
+        return [];
       }
-      const [, , path] = slug.split("/");
-      if (path) {
-        paths.push({ slug: path });
-      }
+
+      return slugs
+        .filter((s): s is string => typeof s === "string" && s.length > 0)
+        .map((s) => {
+          const slug = s.split("/").filter(Boolean).pop() || s;
+          return { slug };
+        });
+    } catch (error) {
+      lastError = error;
+      logger.warn(`Retry ${i + 1}/${maxRetries} for blog paths due to error: ${error instanceof Error ? error.message : String(error)}`);
+      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
     }
-    return paths;
-  } catch (error) {
-    logger.error("Error fetching blog paths", error);
-    // Return empty array to allow build to continue
-    return [];
   }
+
+  logger.error("Error fetching blog paths after all retries", lastError);
+  return [];
 }
 
 export async function generateMetadata({

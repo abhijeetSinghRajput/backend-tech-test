@@ -19,37 +19,67 @@ import {
   handleErrors,
 } from "@/utils";
 
-async function fetchBlogIndexPageData() {
-  const res = await sanityFetch({ query: queryBlogIndexPageData });
-  return res.data;
-}
+import { cache } from "react";
+import { Logger } from "@workspace/logger";
 
-async function fetchBlogIndexPageBlogs(
+const logger = new Logger("BlogIndex");
+
+const fetchWithRetry = async <T,>(fn: () => Promise<T>, name: string): Promise<T> => {
+  const maxRetries = 3;
+  let lastError: any;
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      logger.warn(`Retry ${i + 1}/${maxRetries} for ${name} due to error: ${err instanceof Error ? err.message : String(err)}`);
+      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+    }
+  }
+  throw lastError;
+};
+
+const fetchBlogIndexPageData = cache(async () => {
+  return await fetchWithRetry(async () => {
+    const res = await sanityFetch({ query: queryBlogIndexPageData });
+    return res.data;
+  }, "BlogIndexPageData");
+});
+
+const fetchBlogIndexPageBlogs = cache(async (
   start: number,
   end: number,
   category?: string
-) {
-  const res = await sanityFetch({
-    query: queryBlogIndexPageBlogs,
-    params: { start, end, category: category || null },
-  });
-  return res.data;
-}
+) => {
+  return await fetchWithRetry(async () => {
+    const res = await sanityFetch({
+      query: queryBlogIndexPageBlogs,
+      params: { start, end, category: category || null },
+    });
+    return res.data;
+  }, "BlogIndexPageBlogs");
+});
 
-async function fetchBlogIndexPageBlogsCount(category?: string) {
-  const res = await sanityFetch({
-    query: queryBlogIndexPageBlogsCount,
-    params: { category: category || null },
-  });
-  return res.data;
-}
+const fetchBlogIndexPageBlogsCount = cache(async (category?: string) => {
+  return await fetchWithRetry(async () => {
+    const res = await sanityFetch({
+      query: queryBlogIndexPageBlogsCount,
+      params: { category: category || null },
+    });
+    return res.data;
+  }, "BlogIndexPageBlogsCount");
+});
 
-async function fetchAllCategories() {
-  const res = await sanityFetch({
-    query: queryAllCategories,
-  });
-  return res.data;
-}
+const fetchAllCategories = cache(async () => {
+  return await fetchWithRetry(async () => {
+    const res = await sanityFetch({
+      query: queryAllCategories,
+    });
+    return res.data;
+  }, "AllCategories");
+});
+
 
 export async function generateMetadata() {
   const { data: result } = await sanityFetch({

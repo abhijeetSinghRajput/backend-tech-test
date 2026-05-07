@@ -291,7 +291,12 @@ export const queryAllCategories = defineQuery(`
 `);
 
 export const queryBlogSlugPageData = defineQuery(`
-  *[_type == "blog" && slug.current == $slug][0]{
+  *[_type == "blog" && (
+    slug.current == $slug || 
+    slug.current == "/blog/" + $slug || 
+    slug.current == "blog/" + $slug ||
+    slug.current == "/" + $slug
+  )][0]{
     ...,
     "slug": slug.current,
     "readTime": round(length(pt::text(richText)) / 5 / 200),

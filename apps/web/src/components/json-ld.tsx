@@ -129,14 +129,20 @@ type ArticleJsonLdProps = {
   article: QueryBlogSlugPageDataResult;
   settings?: QuerySettingsDataResult;
 };
-export function ArticleJsonLd({
+export async function ArticleJsonLd({
   article: rawArticle,
-  settings,
+  settings: providedSettings,
 }: ArticleJsonLdProps) {
   if (!rawArticle) {
     return null;
   }
   const article = stegaClean(rawArticle);
+
+  let settings = providedSettings;
+  if (!settings) {
+    const [res] = await handleErrors(client.fetch(querySettingsData));
+    settings = stegaClean(res);
+  }
 
   const baseUrl = getBaseUrl();
   const articleUrl = `${baseUrl}${article.slug}`;

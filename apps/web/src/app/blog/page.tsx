@@ -7,6 +7,8 @@ import {
 } from "@workspace/sanity/query";
 import { notFound } from "next/navigation";
 
+import { urlFor } from "@workspace/sanity/client";
+
 import { BlogHeader } from "@/components/blog-card";
 import { BlogPageContent } from "@/components/blog-page-content";
 import { PageBuilder } from "@/components/pagebuilder";
@@ -53,9 +55,19 @@ export async function generateMetadata() {
   const { data: result } = await sanityFetch({
     query: queryBlogIndexPageData,
   });
+
+  let imageUrl: string | undefined;
+  if (result?.seoImage) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    imageUrl = urlFor(result.seoImage as any).url();
+  } else if (result?.ogImage) {
+    imageUrl = result.ogImage as string;
+  }
+
   return getSEOMetadata({
-    title: result?.title ?? result?.seoTitle,
-    description: result?.description ?? result?.seoDescription,
+    title: result?.seoTitle ?? result?.title ?? undefined,
+    description: result?.seoDescription ?? result?.description ?? undefined,
+    image: imageUrl,
     slug: "/blog",
     contentId: result?._id,
     contentType: result?._type,

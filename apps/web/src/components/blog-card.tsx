@@ -22,6 +22,7 @@ type BlogImageProps = {
   ogImage?: string | null;
   title?: string | null;
   className?: string;
+  priority?: boolean;
 };
 
 export function BlogImage({
@@ -29,6 +30,7 @@ export function BlogImage({
   ogImage,
   title,
   className,
+  priority = false,
 }: BlogImageProps) {
   const containerClasses = cn(
     "relative bg-muted overflow-hidden flex items-center justify-center border-b border-border aspect-square sm:aspect-[4/3]",
@@ -44,6 +46,8 @@ export function BlogImage({
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+          priority={priority}
+          loading={priority ? "eager" : "lazy"}
         />
       </div>
     );
@@ -69,6 +73,8 @@ export function BlogImage({
         height={600}
         image={image}
         width={800}
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "auto"}
       />
     </div>
   );
@@ -123,6 +129,7 @@ export function BlogAuthor({ author }: BlogAuthorProps) {
 type BlogCardProps = {
   blog: Blog;
   searchQuery?: string;
+  priority?: boolean;
 };
 
 function BlogMeta({
@@ -262,7 +269,7 @@ function BlogContent({
   );
 }
 
-export function FeaturedBlogCard({ blog, searchQuery }: BlogCardProps) {
+export function FeaturedBlogCard({ blog, searchQuery, priority = true }: BlogCardProps) {
   const {
     title,
     publishedAt,
@@ -283,6 +290,7 @@ export function FeaturedBlogCard({ blog, searchQuery }: BlogCardProps) {
         ogImage={ogImage}
         title={title}
         className="rounded-none border border-border"
+        priority={priority}
       />
       <div className="space-y-6">
         <BlogMeta publishedAt={publishedAt} readTime={readTime as number | null} />
@@ -302,7 +310,7 @@ export function FeaturedBlogCard({ blog, searchQuery }: BlogCardProps) {
   );
 }
 
-export function BlogCard({ blog, searchQuery }: BlogCardProps) {
+export function BlogCard({ blog, searchQuery, priority = false }: BlogCardProps) {
   if (!blog) {
     return (
       <article className="flex w-full flex-col border border-border bg-background overflow-hidden">
@@ -368,6 +376,7 @@ export function BlogCard({ blog, searchQuery }: BlogCardProps) {
           ogImage={ogImage}
           title={title}
           className="rounded-none"
+          priority={priority}
         />
       </Link>
       <div className="flex flex-col flex-1 p-6">

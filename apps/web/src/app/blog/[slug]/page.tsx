@@ -1,5 +1,5 @@
 import { Logger } from "@workspace/logger";
-import { client } from "@workspace/sanity/client";
+import { client, urlFor } from "@workspace/sanity/client";
 import { sanityFetch } from "@workspace/sanity/live";
 import { queryBlogPaths, queryBlogSlugPageData } from "@workspace/sanity/query";
 import { notFound } from "next/navigation";
@@ -59,9 +59,20 @@ export async function generateMetadata({
   const slugString = `/blog/${slug}`;
   const { data } = await fetchBlogSlugPageData(slugString);
 
+  let imageUrl: string | undefined;
+  if (data?.seoImage) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    imageUrl = urlFor(data.seoImage as any).url();
+  } else if (data?.ogImage) {
+    imageUrl = data.ogImage as string;
+  } else if (data?.image) {
+    imageUrl = urlFor(data.image).url();
+  }
+
   return getSEOMetadata({
-    title: data?.title ?? data?.seoTitle,
-    description: data?.description ?? data?.seoDescription,
+    title: data?.seoTitle ?? data?.title,
+    description: data?.seoDescription ?? data?.description,
+    image: imageUrl,
     slug: slugString,
     contentId: data?._id,
     contentType: data?._type,

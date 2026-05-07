@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     minimumCacheTTL: 31_536_000,
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",
@@ -29,6 +30,40 @@ const nextConfig: NextConfig = {
         pathname: "/PokeAPI/sprites/**",
       },
     ],
+  },
+  async headers() {
+    return [
+      {
+        // Cache static JS/CSS chunks aggressively (they're content-hashed)
+        source: "/_next/static/(.*)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        // Sanity CDN images — long cache
+        source: "/api/og",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
+      },
+      {
+        // Preconnect hint for Sanity CDN (improves LCP)
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Link",
+            value: "<https://cdn.sanity.io>; rel=preconnect; crossorigin, <https://cdn.sanity.io>; rel=dns-prefetch",
+          },
+        ],
+      },
+    ];
   },
   async redirects() {
     const redirects = await client.fetch(queryRedirects);

@@ -42,8 +42,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  preconnect("https://cdn.sanity.io");
+  preconnect("https://cdn.sanity.io", { crossOrigin: "anonymous" });
   prefetchDNS("https://cdn.sanity.io");
+  preconnect("https://fonts.googleapis.com");
+  preconnect("https://fonts.gstatic.com", { crossOrigin: "anonymous" });
   const nav = await getNavigationData();
   return (
     <html lang="en" suppressHydrationWarning>

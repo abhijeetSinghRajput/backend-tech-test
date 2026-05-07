@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import algoliasearch from "algoliasearch/lite";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 import type { Blog } from "@/types";
 import { useDebounce } from "./use-debounce";
@@ -12,8 +11,17 @@ const APP_ID = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID || "";
 const SEARCH_KEY = process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY || "";
 const INDEX_NAME = "blog_index";
 
-const searchClient = algoliasearch(APP_ID, SEARCH_KEY);
-const index = searchClient.initIndex(INDEX_NAME);
+// Lazy singleton — only initialized when the user actually searches
+let lazyIndex: ReturnType<ReturnType<typeof import("algoliasearch/lite")["default"]>["initIndex"]> | null = null;
+
+async function getIndex() {
+  if (!lazyIndex) {
+    const { default: algoliasearch } = await import("algoliasearch/lite");
+    const client = algoliasearch(APP_ID, SEARCH_KEY);
+    lazyIndex = client.initIndex(INDEX_NAME);
+  }
+  return lazyIndex;
+}
 
 async function searchBlog(query: string, category: string | null) {
   if (!query.trim()) {
@@ -21,6 +29,7 @@ async function searchBlog(query: string, category: string | null) {
   }
 
   const filters = category ? `categories:"${category}"` : "";
+  const index = await getIndex();
 
   const response = await index.search(query, {
     filters,
@@ -31,7 +40,6 @@ async function searchBlog(query: string, category: string | null) {
 
   const results = response.hits.map((hit: Record<string, unknown>) => ({
     ...hit,
-    // Add highlighting info to the blog object for the UI to use
     _highlightResult: hit._highlightResult,
   })) as unknown as Blog[];
 

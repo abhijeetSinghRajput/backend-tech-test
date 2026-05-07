@@ -1,6 +1,11 @@
 # Roboto Studio Backend Technical Assessment - Solution
 
-![Submission Banner](./screenshots/blog-index-page.webp)
+![Hero Section](./screenshots/hero-section.webp)
+
+>
+> **Practice on the Homepage:** Visit the [homepage](https://backend-tech-test.vercel.app/) to explore and master **Headless Architecture** with Sanity CMS.
+
+![Author Section](./screenshots/author-section.webp)
 
 This repository contains the solution for the **Roboto Studio Backend Technical Assessment**. The project is a highly optimized, feature-rich blog system built with Next.js 15, Sanity CMS, Algolia, and the PokéAPI.
 
